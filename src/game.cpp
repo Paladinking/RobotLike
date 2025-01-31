@@ -5,7 +5,6 @@
 GameState::GameState() : State()  {}
 
 void GameState::set_font_size() {
-    // This is very cursed, but works on windows with the current font for sizes 1.0, 1.25, 1.5 and 1.75
     double new_dpi_scale = std::min(static_cast<double>(window_state->window_width) /
                                               window_state->screen_width,
                                           static_cast<double>(window_state->window_height) /

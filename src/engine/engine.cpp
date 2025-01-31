@@ -3,7 +3,6 @@
 #include "ui.h"
 #include <SDL.h>
 #include "font.h"
-#include <zlib.h>
 
 extern const int DEFAULT_FONT_LENGTH;
 extern const Uint8 DEFAULT_FONT[];

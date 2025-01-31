@@ -310,7 +310,7 @@ void Editbox::handle_keypress(SDL_Keycode key) {
 
 void Editbox::render() {
     SDL_SetRenderDrawColor(gRenderer, UI_BORDER_COLOR);
-    SDL_Rect rect = {x, y, BOX_SIZE, BOX_SIZE};
+    SDL_Rect rect = {x, y, BOX_W, BOX_H};
     SDL_RenderFillRect(gRenderer, &rect);
     SDL_SetRenderDrawColor(gRenderer, UI_BACKGROUND_COLOR);
     rect = {rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4};
@@ -373,8 +373,8 @@ void Editbox::set_dpi_scale(double dpi) {
     }
 }
 bool Editbox::is_pressed(int mouse_x, int mouse_y) const {
-    return mouse_x > x && mouse_x < x + BOX_SIZE && mouse_y > y &&
-           mouse_y < y + BOX_SIZE;
+    return mouse_x > x && mouse_x < x + BOX_W && mouse_y > y &&
+           mouse_y < y + BOX_H;
 }
 void Editbox::change_callback(TextPosition start, TextPosition end,
                               int64_t removed) {
@@ -388,7 +388,7 @@ void Editbox::change_callback(TextPosition start, TextPosition end,
     if (boxes.size() < lines.line_count()) {
         for (int i = boxes.size(); i < lines.line_count(); ++i) {
             boxes.emplace_back(0, 0 + BOX_LINE_HEIGHT * i,
-                               BOX_SIZE - 2 * BOX_TEXT_MARGIN, BOX_LINE_HEIGHT,
+                               BOX_W - 2 * BOX_TEXT_MARGIN, BOX_LINE_HEIGHT,
                                "", *window_state);
             boxes.back().set_align(Alignment::LEFT);
         }
