@@ -5,7 +5,6 @@
 #include "editlines.h"
 #include "engine/game.h"
 #include "engine/ui.h"
-#include "compiler.h"
 #include <vector>
 
 void change_callback(TextPosition start, TextPosition end, int64_t size, void* box);
@@ -41,7 +40,7 @@ public:
 
     void set_text(std::string& text);
 
-    void set_errors(std::vector<ErrorMsg> msgs);
+    void set_errors(std::vector<std::pair<std::string, uint32_t>> msgs);
 private:
     friend void change_callback(TextPosition, TextPosition, int64_t, void*);
     void change_callback(TextPosition start, TextPosition end, int64_t removed);

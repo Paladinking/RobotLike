@@ -117,13 +117,13 @@ void Editbox::set_text(std::string &text) {
     lines.clear_undo_stack();
 }
 
-void Editbox::set_errors(std::vector<ErrorMsg> msgs) {
+void Editbox::set_errors(std::vector<std::pair<std::string, uint32_t>> msgs) {
     error_msg.clear();
     for (const auto &error : msgs) {
         error_msg.emplace_back(
             -8 - BOX_TEXT_MARGIN,
-            BOX_TEXT_MARGIN + static_cast<int>(error.pos.row) * BOX_LINE_HEIGHT,
-            0, BOX_LINE_HEIGHT, error.msg, *window_state);
+            BOX_TEXT_MARGIN + static_cast<int>(error.second) * BOX_LINE_HEIGHT,
+            0, BOX_LINE_HEIGHT, error.first, *window_state);
         error_msg.back().set_align(Alignment::RIGHT);
         error_msg.back().set_text_color(0xf0, 0, 0, 0xff);
     }

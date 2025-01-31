@@ -1,4 +1,4 @@
-#include "assembly.h"
+#include "game.h"
 #include "engine/log.h"
 #include <SDL.h>
 #include <SDL_image.h>
@@ -6,7 +6,6 @@
 #include <engine/engine.h>
 #include <engine/game.h>
 #include <memory>
-#include "registers.h"
 
 class SDL_context {
 public:
