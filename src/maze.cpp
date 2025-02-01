@@ -60,32 +60,31 @@ void Maze::generate_maze() {
             }
         }
     };
-    struct Node {
-        Node(Node* p, int32_t x, int32_t y) : par{p}, x{x}, y{y} {}
-        Node* par;
-        int32_t x, y;
-        double fscore = 0;
-        double gscore = std::numeric_limits<double>::max();
+    auto connect_rooms = [this](Room a, Room b) {
+        auto goal = b.middle();
 
-        double hscore(std::pair<int32_t, int32_t> goal) {
-            int32_t dx = x - goal.first, dy = y - goal.second;
-            return std::abs(dx) + std::abs(dy);
-        }
+        struct Node {
+            Node(Node* p, int32_t x, int32_t y) : par{p}, x{x}, y{y} {}
+            Node* par;
+            int32_t x, y;
+            double gscore = std::numeric_limits<double>::max();
 
-        std::array<Node, 4> neigbors() {
-            return {
-                Node {this, x - 1, y},
-                Node {this, x + 1, y},
-                Node {this, x, y - 1},
-                Node {this, x,  y + 1}
-            };
-        }
-    };
-    auto cmpr = [](Node* a, Node* b) {
-        return a->fscore > b->fscore;
-    };
+            double hscore(std::pair<int32_t, int32_t> goal) {
+                int32_t dx = x - goal.first, dy = y - goal.second;
+                return std::abs(dx) + std::abs(dy);
+            }
 
-    auto connect_rooms = [this, &cmpr](Room a, Room b) {
+            std::array<Node, 4> neigbors() {
+                return {
+                    Node {this, x - 1, y}, Node {this, x + 1, y},
+                    Node {this, x, y - 1}, Node {this, x,  y + 1}
+                };
+            }
+        };
+        auto cmpr = [&goal](Node* a, Node* b) {
+            return a->gscore + a->hscore(goal) > b->gscore +  b->hscore(goal);
+        };
+
         struct hash {
             std::size_t operator()(std::pair<int32_t, int32_t> p) const {
                 return std::hash<int32_t>{}(p.first) ^ 
@@ -104,20 +103,12 @@ void Maze::generate_maze() {
                 }
             }
             Node* add(Node n) {
-                Node* n1 = new Node{n};
-                nodes.push_back(n1);
-                return n1;
-            }
-            Node* add(Node* parent, int32_t x, int32_t y) {
-                Node* n = new Node(parent, x, y);
-                nodes.push_back(n);
-                return n;
+                nodes.push_back(new Node{n});
+                return nodes.back();
             }
         } nodes;
 
-        auto start = nodes.add(nullptr, a.middle().first, a.middle().second);
-        auto goal = b.middle();
-        start->fscore = start->hscore(goal);
+        auto start = nodes.add(Node(nullptr, a.middle().first, a.middle().second));
         start->gscore = 0;
         queue.push(start);
         while (queue.size() > 0) {
@@ -147,9 +138,8 @@ void Maze::generate_maze() {
                 if (map[node.x][node.y] == VOID || map[node.x][node.y] == OPEN) {
                     node.gscore += 1;
                 } else if (map[node.x][node.y] == WALL) {
-                    node.gscore += 2;
+                    node.gscore += 5;
                 }
-                node.fscore = node.hscore(goal) + node.gscore;
                 queue.push(nodes.add(node));
             }
         }
