@@ -1,8 +1,9 @@
 #include "game.h"
 #include "engine/log.h"
 #include "config.h"
+// #include "slime.h"
 
-GameState::GameState() : State()  {}
+GameState::GameState() : State()  { slimes.reserve(32); }
 
 void GameState::set_font_size() {
     double new_dpi_scale = std::min(static_cast<double>(window_state->window_width) /
@@ -62,11 +63,20 @@ void GameState::init(WindowState *window_state) {
         delete[] data;
         SDL_RWclose(file);
     }
+
+    for (int32_t i = 0; i < 5; i++) {
+        Slime slime { engine::random(100, 200), engine::random(100, 200), i };
+        slimes.push_back(slime);
+    }
+    
 }
 
 void GameState::render() {
     box.render();
     maze.render(0, 0);
+    for (size_t i{0}; i < slimes.size(); ++i) {
+        slimes[i].render(0, 0);
+    }
 }
 void GameState::tick(const Uint64 delta, StateStatus &res) {
     res = next_state;
