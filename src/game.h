@@ -2,6 +2,7 @@
 #include "editbox.h"
 #include <engine/game.h>
 #include <engine/ui.h>
+#include "maze.h"
 
 class GameState : public State {
 public:
@@ -33,6 +34,8 @@ public:
     void clock_tick();
 private:
     StateStatus next_state;
+
+    Maze maze;
 
     void set_font_size();
 

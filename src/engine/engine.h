@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include "events.h"
+#include <random>
 
 // Global renderer variable
 extern SDL_Renderer *gRenderer;
@@ -18,7 +19,9 @@ struct SurfaceDeleter {
     void operator()(SDL_Surface *s) { SDL_FreeSurface(s); }
 };
 
+extern std::minstd_rand generator;
 namespace engine {
+
     void init();
 
     void shutdown();
@@ -27,6 +30,12 @@ namespace engine {
     * Returns a random number between min (inclusive) and max (exclusive).
     */
     int random(int min, int max);
+
+    template<class T>
+    T random(const T min, const T max) {
+        if (min >= max) return min;
+        return (static_cast<T>(generator()) % (max - min)) + min;
+    }
 }; // namespace engine
 
 #endif

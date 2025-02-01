@@ -66,6 +66,7 @@ void GameState::init(WindowState *window_state) {
 
 void GameState::render() {
     box.render();
+    maze.render(0, 0);
 }
 void GameState::tick(const Uint64 delta, StateStatus &res) {
     res = next_state;
