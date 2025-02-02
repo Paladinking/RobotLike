@@ -248,7 +248,6 @@ void GameState::handle_textinput(const SDL_TextInputEvent &e) {
 }
 
 void GameState::handle_user_event(SDL_UserEvent &e) {
-    std::cout << "User event" << std::endl;
     if (e.type == EVT_MOVE_FORWARDS) {
         player->forward(maze);
         paused = true;
@@ -300,6 +299,7 @@ void GameState::handle_user_event(SDL_UserEvent &e) {
         }
         std::cout << *s << std::flush;
         delete s;
+        program.resume();
     }
 }
 
