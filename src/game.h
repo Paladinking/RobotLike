@@ -4,6 +4,8 @@
 #include <engine/game.h>
 #include <engine/ui.h>
 #include "maze.h"
+#include <vector>
+#include "slime.h"
 
 class GameState : public State {
 public:
@@ -40,6 +42,8 @@ private:
     Program program;
 
     Maze maze;
+
+    std::vector<Slime> slimes;
 
     void set_font_size();
 
