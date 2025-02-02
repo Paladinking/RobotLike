@@ -142,7 +142,7 @@ public:
     void remove_scope();
 
     // Implicit add_ref
-    void set_var(int32_t id, Value val);
+    void set_var(int32_t id, Value val, bool param);
 
     Value get_var(int32_t id);
 

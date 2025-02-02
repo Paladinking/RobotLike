@@ -94,13 +94,17 @@ void Program::remove_scope() {
     scopes.pop_back();
 }
 
-void Program::set_var(int32_t id, Value val) {
+void Program::set_var(int32_t id, Value val, bool param) {
     add_ref(val);
     if (scopes.size() > 0) {
         auto var = scopes.back().find(id);
         if (var != scopes.back().end()) {
             remove_ref(var->second);
             var->second = val;
+            return;
+        }
+        if (param) {
+            scopes.back().insert({id, val});
             return;
         }
     }
@@ -485,7 +489,7 @@ Value FuncCall::evaluate(Program& p) const {
     p.add_scope();
     for (size_t ix = 0; ix < args.size(); ++ix) {
         Value v = args[ix]->evaluate(p);
-        p.set_var(f->params[ix], v);
+        p.set_var(f->params[ix], v, true);
         p.remove_ref(v);
     }
     for (Statement* s: f->statements) {
@@ -515,7 +519,7 @@ Value VariableExpr::evaluate(Program& p) const {
 Statement::Status Assignment::evaluate(Program& p) const {
     p.status(lineno);
     Value v = val->evaluate(p);
-    p.set_var(id, v);
+    p.set_var(id, v, false);
     p.remove_ref(v);
     return Statement::NEXT;
 }
@@ -604,7 +608,7 @@ Statement::Status ForStatement::evaluate(Program& p) const {
     }
 
     for (int64_t ix = 0; ix < v.tuple->size(); ++ix) {
-        p.set_var(var_id, v.tuple->at(ix));
+        p.set_var(var_id, v.tuple->at(ix), false);
         for (Statement* s : statements) {
             Statement::Status status = s->evaluate(p);
             if (status == Statement::RETURN) {
