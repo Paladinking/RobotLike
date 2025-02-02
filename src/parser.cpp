@@ -108,7 +108,7 @@ void Parser::expect_char(Lines lines, char c, bool allow_space) {
 
 bool Parser::has_indent(Lines lines, int32_t indent) {
     for (int32_t i = 0; i < indent * 4; ++i) {
-        if (ix + i >= lines.size() || lines[line][ix + i] != ' ') {
+        if (ix + i >= lines[line].size() || lines[line][ix + i] != ' ') {
             return false;
         }
     }

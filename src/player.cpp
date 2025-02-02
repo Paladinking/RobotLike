@@ -55,7 +55,6 @@ void Player::move(Maze& map, int32_t dx, int32_t dy) {
 
 
 void Player::render(float offset_x, float offset_y) {
-    std::cout << direction.angle() << std::endl;
     texture->render(offset_x + pos.x * TILE_SIZE + TILE_SIZE / 2, offset_y + pos.y * TILE_SIZE + TILE_SIZE / 2,
                              direction.angle() + M_PI_2, SDL_FLIP_NONE
                              );
