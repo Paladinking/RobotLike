@@ -3,7 +3,16 @@
 #include <utility>
 
 
+vec2i::vec2i() : x(0), y(0) {}
+
+
 vec2i::vec2i(int32_t x, int32_t y) : x(x), y(y) {}
+
+
+bool vec2i::operator==(vec2i const &other) { return x == other.x && y == other.y; }
+
+
+void vec2i::operator+=(vec2i const &other) { x += other.x; y += other.y; }
 
 
 int32_t vec2i::dist_to(vec2i const& other) {

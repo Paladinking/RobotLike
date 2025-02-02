@@ -26,7 +26,8 @@ set(FONT_OBJ ${CMAKE_CURRENT_BINARY_DIR}/font${CMAKE_C_OUTPUT_EXTENSION})
 
 add_executable(main src/main.cpp src/game.cpp src/editbox.cpp
                src/editlines.cpp src/maze.cpp src/language.cpp
-               src/parser.cpp src/slime.cpp src/equipment.cpp src/utils.cpp
+               src/parser.cpp src/slime.cpp src/equipment.cpp
+               src/player.cpp src/utils.cpp
                ${ENGINGE_SRC} ${FONT_OBJ})
 
 add_custom_command(OUTPUT ${FONT_OBJ} ${PROJECT_SOURCE_DIR}/tools/font.h

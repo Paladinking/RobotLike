@@ -5,7 +5,9 @@
 #include <engine/ui.h>
 #include "maze.h"
 #include <vector>
-#include "slime.h"
+#include "enemy.h"
+#include <memory>
+#include "player.h"
 
 class GameState : public State {
 public:
@@ -43,7 +45,10 @@ private:
 
     Maze maze;
 
-    std::vector<Slime> slimes;
+    std::vector<std::unique_ptr<Texture>> textures;
+    std::unique_ptr<Player> player;
+    vec2i player_mov;
+    std::vector<std::unique_ptr<Enemy>> enemies;
 
     void set_font_size();
 

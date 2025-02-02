@@ -75,6 +75,8 @@ void Editbox::unselect() {
     lines.clear_action();
 }
 
+bool Editbox::is_selected() { return box_selected; }
+
 void Editbox::reset_cursor_animation() {
     ticks_remaining = 500;
     show_cursor = true;

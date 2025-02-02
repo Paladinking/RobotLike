@@ -26,7 +26,11 @@ enum DIR {
 
 struct vec2i {
 public:
+    vec2i();
     vec2i(int32_t x, int32_t y);
+
+    bool operator==(vec2i const& other);
+    void operator+=(vec2i const & other);
 
     int32_t dist_to(vec2i const& other);
     int32_t dist_sqrd_to(vec2i const& other);
