@@ -1,9 +1,12 @@
 #include "game.h"
 #include "engine/log.h"
 #include "config.h"
-// #include "slime.h"
+#include "string.h"
+#include <array>
+#include "slime.h"
+#include "utils.h"
 
-GameState::GameState() : State()  { slimes.reserve(32); }
+GameState::GameState() : State()  { enemies.reserve(32); }
 
 void GameState::set_font_size() {
     double new_dpi_scale = std::min(static_cast<double>(window_state->window_width) /
@@ -64,9 +67,21 @@ void GameState::init(WindowState *window_state) {
         SDL_RWclose(file);
     }
 
+    // constexpr int32_t tilesize = 10;
+    textures.reserve(14);
+    Texture* tex = new Texture{};
+    tex->load_from_file("../../assets/Tile.png", TILE_SIZE, TILE_SIZE);
+    textures.emplace_back(tex);
+    maze.set_texture(textures[0].get());
+    tex = new Texture{};
+    tex->load_from_file("../../assets/Robot.png", TILE_SIZE, TILE_SIZE);
+    textures.emplace_back(tex);
+
+    player.reset(new Player{ 0, 0, textures[1].get() });
+
     for (int32_t i = 0; i < 5; i++) {
-        Slime slime { engine::random(100, 200), engine::random(100, 200), i };
-        slimes.push_back(slime);
+        auto slime = new Slime{ engine::random(0, 20), engine::random(0, 20), i };
+        enemies.emplace_back(slime);
     }
     
 }
@@ -74,9 +89,10 @@ void GameState::init(WindowState *window_state) {
 void GameState::render() {
     box.render();
     maze.render(0, 0);
-    for (size_t i{0}; i < slimes.size(); ++i) {
-        slimes[i].render(0, 0);
+    for (size_t i{0}; i < enemies.size(); ++i) {
+        enemies[i]->render(0, 0);
     }
+    player->render(0, 0);
 }
 void GameState::tick(const Uint64 delta, StateStatus &res) {
     res = next_state;
@@ -94,6 +110,8 @@ void GameState::tick(const Uint64 delta, StateStatus &res) {
         return;
     }
 
+    player.get()->tick(maze, enemies, player_mov, vec2i{});
+
     box.tick(delta);
 }
 
@@ -104,6 +122,23 @@ void GameState::handle_up(SDL_Keycode key, Uint8 mouse) {
             SDL_StopTextInput();
         }
         mouse_down = false;
+    } else {
+        switch (key) {
+            case SDLK_w:
+                if (player_mov == vec2i_from_dir(DIR_UP)) player_mov = vec2i{0, 0};
+                break;
+            case SDLK_d:
+                if (player_mov == vec2i_from_dir(DIR_RIGHT)) player_mov = vec2i{0, 0};
+                break;
+            case SDLK_s:
+                if (player_mov == vec2i_from_dir(DIR_DOWN)) player_mov = vec2i{0, 0};
+                break;
+            case SDLK_a:
+                if (player_mov == vec2i_from_dir(DIR_LEFT)) player_mov = vec2i{0, 0};
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -119,8 +154,25 @@ void GameState::handle_down(const SDL_Keycode key, const Uint8 mouse) {
             box.unselect();
             SDL_StopTextInput();
         }
-    } else {
+    } else if (box.is_selected()) {
         box.handle_keypress(key);
+    } else {
+        switch (key) {
+            case SDLK_w:
+                player_mov = vec2i_from_dir(DIR_UP);
+                break;
+            case SDLK_d:
+                player_mov = vec2i_from_dir(DIR_RIGHT);
+                break;
+            case SDLK_s:
+                player_mov = vec2i_from_dir(DIR_DOWN);
+                break;
+            case SDLK_a:
+                player_mov = vec2i_from_dir(DIR_LEFT);
+                break;
+            default:
+                break;
+        }
     }
 }
 

@@ -2,10 +2,11 @@
 
 constexpr int MAZE_HEIGHT = 30;
 constexpr int MAZE_WIDTH = 30;
-constexpr float TILE_SIZE = 10.0f;
+constexpr float TILE_SIZE = 32.0f;
 
 #include <array>
 #include <vector>
+#include "engine/texture.h"
 
 enum Direction : int { LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3 };
 
@@ -17,10 +18,14 @@ private:
 
     void generate_maze();
 
+    Texture* texture_tile;
+
 public:
     bool is_open(int32_t x, int32_t y) { return map[x][y] == OPEN || map[x][y] == PLAYER_START || map[x][y] == PATH; }
 
     Maze();
+
+    void set_texture(Texture* texture);
 
     void render(float offet_x, float offset_y);
 };

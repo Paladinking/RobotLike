@@ -34,6 +34,8 @@ public:
 
     void unselect();
 
+    bool is_selected();
+
     const std::vector<std::string>& get_text() const;
 
     void input_char(char c);

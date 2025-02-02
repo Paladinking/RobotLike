@@ -27,7 +27,7 @@ enum WEAPON_MELEE_SPECIAL {
 
 static constexpr float MOD_MELEE_NOTHING = 3.5, MOD_MELEE_LIFE_STEAL = 2.0, MOD_MELEE_ARMOUR_SHRED = 2.5, MOD_MELEE_SPIN = 3.0;
 
-struct WeaponMelee : Equipment {
+struct WeaponMelee : public Equipment {
     int32_t damage, level;
     WEAPON_MELEE_SPECIAL special;
 };
@@ -42,7 +42,7 @@ enum WEAPON_RANGED_SPECIAL {
 
 static constexpr float MOD_RANGED_NOTHING = 2.5, MOD_RANGED_ARMOUR_SHRED = 1.5, MOD_RANGED_EXPLOSIVE = 2.0, MOD_RANGED_PIERCING = 2.0;
 
-struct WeaponRanged : Equipment {
+struct WeaponRanged : public Equipment {
     int32_t damage, range, level;
     WEAPON_RANGED_SPECIAL special;
 };
@@ -55,7 +55,7 @@ enum ARMOUR_SPECIAL {
     QUICK,
 };
 
-struct Armour : Equipment {
+struct Armour : public Equipment {
     int32_t armour, hp, regen, regen_speed, level;
     ARMOUR_SPECIAL special;
 };

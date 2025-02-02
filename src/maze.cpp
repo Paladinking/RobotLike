@@ -181,6 +181,8 @@ void Maze::generate_maze() {
 
 Maze::Maze() : map{MAZE_WIDTH} { generate_maze(); }
 
+void Maze::set_texture(Texture *texture) { texture_tile = texture ;}
+
 void Maze::render(float offset_x, float offset_y) {
     constexpr SDL_Color LIGHTGRAY = {0xe0, 0xe0, 0xe0, 0xff};
     constexpr SDL_Color GRAY = {0x3f, 0x3f, 0x3f, 0xff};
@@ -189,17 +191,23 @@ void Maze::render(float offset_x, float offset_y) {
 
     for (int i = 0; i < map.size(); i++) {
         for (int j = 0; j < map[0].size(); j++) {
+            bool draw_texture = false;
             SDL_Color color = WHITE;
             SDL_FRect rect = {offset_x + TILE_SIZE * i,
                               offset_y + TILE_SIZE * j, TILE_SIZE,
                               TILE_SIZE};
             if (is_open(i, j)) {
                 color = GRAY;
+                draw_texture = texture_tile != nullptr;
                 (i % 2 == 0) ? LIGHTGRAY : ((j % 2 == 0) ? GRAY : BLACK);
             }
-            SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b,
-                                   color.a);
-            SDL_RenderFillRectF(gRenderer, &rect);
+            if (draw_texture) {
+                texture_tile->render_corner(offset_x + TILE_SIZE * i, offset_y + TILE_SIZE * j);
+            } else {
+                SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b,
+                                        color.a);
+                SDL_RenderFillRectF(gRenderer, &rect);
+            }
         }
     }
 }
