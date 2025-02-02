@@ -2,6 +2,7 @@
 #include <chrono>
 #include <sstream>
 #include <SDL.h>
+#include "engine/engine.h"
 
 
 void Program::runtime_error(int32_t lineno, const std::string& cause) {
@@ -76,6 +77,8 @@ void Program::set_events(uint32_t print_evt) {
     EVT_MOVE = print_evt + 1;
     EVT_ROTL = print_evt + 2;
     EVT_ROTR = print_evt + 3;
+    EVT_READ_TILE = print_evt + 4;
+    EVT_MOVE_FORWARDS = print_evt + 5;
 }
 
 void Program::status(int32_t lineno) {
@@ -433,17 +436,40 @@ Value BuiltinCall::evaluate(Program& p) const {
             return v.i;
         }
     };
-    if (type == READ_FRONT) {
+
+    if (type == RANDOM) {
+        Value v = Value(engine::random<int64_t>(0, 100));
+        p.add_ref(v);
+        return v;
+    } else if (type == FORWARDS) {
         SDL_Event e;
-        e.type = p.EVT_ROTR;
+        e.type = p.EVT_MOVE_FORWARDS;
         if (args.size() != 0) {
             p.runtime_error(lineno, "Wrong number of arguments");
             return Value();
         }
         SDL_PushEvent(&e);
         p.pause();
-    }
-    if (type == ROTR) {
+    } else if (type == READ_FRONT) {
+        SDL_Event e;
+        e.type = p.EVT_READ_TILE;
+        if (args.size() != 0) {
+            p.runtime_error(lineno, "Wrong number of arguments");
+            return Value();
+        }
+        auto* t = new ReadTile();
+        e.user.data1 = t;
+        SDL_PushEvent(&e);
+        p.pause();
+        p.status(lineno);
+
+        t->m.lock();
+        Value v = Value(t->is_open);
+        t->m.unlock();
+        delete t;
+        p.add_ref(v);
+        return v;
+    } else if (type == ROTR) {
         SDL_Event e;
         e.type = p.EVT_ROTR;
         if (args.size() != 0) {

@@ -12,7 +12,10 @@ void Player::tick(Maze const &map, std::vector<std::unique_ptr<Enemy>> &enemies,
 }
 
 void Player::forward(Maze& map) {
-
+    if (read_forward(map)) {
+        pos.x += direction.x;
+        pos.y += direction.y;
+    }
 }
 
 void Player::rotate_left() {
@@ -39,6 +42,9 @@ void Player::rotate_right() {
     }
 }
 
+bool Player::read_forward(Maze& map) {
+    return map.is_open(pos.x + direction.x, pos.y + direction.y);
+}
 void Player::move(Maze& map, int32_t dx, int32_t dy) {
     assert(std::abs(dx) <= 1 && std::abs(dy) <= 1);
     if (map.is_open(pos.x + dx, pos.y + dy)) {
@@ -47,9 +53,10 @@ void Player::move(Maze& map, int32_t dx, int32_t dy) {
     }
 }
 
+
 void Player::render(float offset_x, float offset_y) {
     std::cout << direction.angle() << std::endl;
-    texture->render(offset_x + pos.x * TILE_SIZE - TILE_SIZE / 2, offset_y + pos.y * TILE_SIZE - TILE_SIZE / 2,
+    texture->render(offset_x + pos.x * TILE_SIZE + TILE_SIZE / 2, offset_y + pos.y * TILE_SIZE + TILE_SIZE / 2,
                              direction.angle() + M_PI_2, SDL_FLIP_NONE
                              );
     //texture->render_corner(offset_x + pos.x * TILE_SIZE, offset_y + pos.y * TILE_SIZE);

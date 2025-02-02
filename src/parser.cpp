@@ -25,6 +25,9 @@ Parser::Parser() {
     builtins.insert({"move", BuiltinCall::MOVE});
     builtins.insert({"rotate_left", BuiltinCall::ROTL});
     builtins.insert({"rotate_right", BuiltinCall::ROTR});
+    builtins.insert({"forward", BuiltinCall::FORWARDS});
+    builtins.insert({"read_front", BuiltinCall::READ_FRONT});
+    builtins.insert({"rand", BuiltinCall::RANDOM});
 }
 
 // Advances ix to point to first non-space in string

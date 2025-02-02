@@ -74,6 +74,8 @@ void GameState::init(WindowState *window_state) {
     EVT_MOVE = EVT_PRINT + 1;
     EVT_ROTL = EVT_PRINT + 2;
     EVT_ROTR = EVT_PRINT + 3;
+    EVT_READ_TILE = EVT_PRINT + 4;
+    EVT_MOVE_FORWARDS = EVT_PRINT + 5;
 
     program.set_events(EVT_PRINT);
 
@@ -247,7 +249,17 @@ void GameState::handle_textinput(const SDL_TextInputEvent &e) {
 
 void GameState::handle_user_event(SDL_UserEvent &e) {
     std::cout << "User event" << std::endl;
-    if (e.type == EVT_ROTL) {
+    if (e.type == EVT_MOVE_FORWARDS) {
+        player->forward(maze);
+        paused = true;
+        action_delay = 500;
+    } else if (e.type == EVT_READ_TILE) {
+      auto* p = static_cast<ReadTile *>(e.data1);
+      p->m.lock();
+      p->is_open = player->read_forward(maze);
+      p->m.unlock();
+      program.resume();
+    } else if (e.type == EVT_ROTL) {
         player->rotate_left();
         paused = true;
         action_delay = 500;

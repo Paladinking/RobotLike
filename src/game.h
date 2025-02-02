@@ -67,5 +67,5 @@ private:
     bool paused = false;
     Sint64 action_delay = 0;
 
-    Uint32 EVT_PRINT, EVT_MOVE, EVT_ROTR, EVT_ROTL;
+    Uint32 EVT_PRINT, EVT_MOVE, EVT_ROTR, EVT_ROTL, EVT_READ_TILE, EVT_MOVE_FORWARDS;
 };

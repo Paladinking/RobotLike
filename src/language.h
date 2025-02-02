@@ -112,7 +112,7 @@ class Program {
 
     Value return_val = Value();
 public:
-    uint32_t EVT_PRINT, EVT_MOVE, EVT_ROTL, EVT_ROTR;
+    uint32_t EVT_PRINT, EVT_MOVE, EVT_ROTL, EVT_ROTR, EVT_READ_TILE, EVT_MOVE_FORWARDS;
 
     Statement* entrypoint;
 
@@ -328,7 +328,7 @@ class BuiltinCall : public Expression {
     std::vector<Expression*> args;
 public:
     enum Type {
-        LENGTH, PRINT, ELEM, TUPLE, MOVE, ROTR, ROTL, FORWARDS, READ_FRONT
+        LENGTH, PRINT, ELEM, TUPLE, MOVE, ROTR, ROTL, FORWARDS, READ_FRONT, RANDOM
     } type;
     BuiltinCall(int32_t lineno, Type type , std::vector<Expression*> args) : Expression{lineno}, type{type}, args{args} {}
 

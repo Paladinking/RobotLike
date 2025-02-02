@@ -18,6 +18,8 @@ public:
 
     void render(float offset_x, float offset_y);
 
+    bool read_forward(Maze& map);
+
     void forward(Maze& map);
 
     void rotate_left();
