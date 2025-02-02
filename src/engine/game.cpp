@@ -101,7 +101,12 @@ void Game::run() {
                 } else if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
                     handle_focus_change(true);
                 }
+            default:
+                if (e.type >= SDL_USEREVENT) {
+                    handle_user_event(e.user);
+                }
             }
+
         }
         window_state.mouse_mask = SDL_GetMouseState(nullptr, nullptr);
 
@@ -238,6 +243,10 @@ void StateGame::handle_size_change() {
 
 void StateGame::handle_focus_change(bool focus) {
     states.top()->handle_focus_change(focus);
+}
+
+void StateGame::handle_user_event(SDL_UserEvent &e) {
+    states.top()->handle_user_event(e);
 }
 
 void StateGame::shutdown() {

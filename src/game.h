@@ -1,5 +1,6 @@
 #pragma once
 #include "editbox.h"
+#include "language.h"
 #include <engine/game.h>
 #include <engine/ui.h>
 #include "maze.h"
@@ -29,11 +30,14 @@ public:
 
     void handle_focus_change(bool focus) override;
 
+    void handle_user_event(SDL_UserEvent &e) override;
+
     void menu_change(bool visible);
 
     void clock_tick();
 private:
     StateStatus next_state;
+    Program program;
 
     Maze maze;
 
@@ -44,5 +48,12 @@ private:
     bool mouse_down = false;
 
     Editbox box;
+    Components comps;
+
+    std::vector<Component<TextBox>> log;
+    int log_ix = 0;
+
     double dpi_scale = 0.0;
+
+    Uint32 EVT_PRINT;
 };

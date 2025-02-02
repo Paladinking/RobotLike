@@ -40,7 +40,7 @@ public:
 
     void set_text(std::string& text);
 
-    void set_errors(std::vector<std::pair<std::string, uint32_t>> msgs);
+    void set_errors(std::vector<std::pair<std::string, int32_t>> msgs);
 private:
     friend void change_callback(TextPosition, TextPosition, int64_t, void*);
     void change_callback(TextPosition start, TextPosition end, int64_t removed);

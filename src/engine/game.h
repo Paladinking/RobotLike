@@ -120,6 +120,8 @@ protected:
 
     virtual void handle_focus_change(bool focus) {};
 
+    virtual void handle_user_event(SDL_UserEvent& e) {};
+
     virtual void shutdown() {};
 
 private:
@@ -204,6 +206,8 @@ public:
 
     virtual void handle_focus_change(bool focus) {};
 
+    virtual void handle_user_event(SDL_UserEvent& e) {};
+
     /**
      * Get the desired window width of this state.
      */
@@ -278,7 +282,9 @@ protected:
 
     void handle_size_change() override;
 
-    virtual void handle_focus_change(bool focus) override;
+    void handle_focus_change(bool focus) override;
+
+    void handle_user_event(SDL_UserEvent& e) override;
 
     void shutdown() override;
 
