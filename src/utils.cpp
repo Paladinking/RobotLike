@@ -14,6 +14,9 @@ bool vec2i::operator==(vec2i const &other) { return x == other.x && y == other.y
 
 void vec2i::operator+=(vec2i const &other) { x += other.x; y += other.y; }
 
+double vec2i::angle() {
+    return std::atan2(y, x);
+}
 
 int32_t vec2i::dist_to(vec2i const& other) {
     return std::sqrt(dist_sqrd_to(other));

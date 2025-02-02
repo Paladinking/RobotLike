@@ -21,7 +21,17 @@ private:
     Texture* texture_tile;
 
 public:
-    bool is_open(int32_t x, int32_t y) { return map[x][y] == OPEN || map[x][y] == PLAYER_START || map[x][y] == PATH; }
+    std::pair<int32_t, int32_t> start, goal;
+
+    bool is_open(int32_t x, int32_t y) {
+        if (x < 0 || x >= map.size()) {
+            return false;
+        }
+        if (y < 0 || y >= map[0].size()) {
+            return false;
+        }
+        return map[x][y] == OPEN || map[x][y] == PLAYER_START || map[x][y] == PATH;
+    }
 
     Maze();
 

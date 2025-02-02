@@ -9,6 +9,7 @@
 #include <iostream>
 #include <exception>
 #include <thread>
+#include <mutex>
 
 
 class RuntimeError: std::exception {
@@ -111,7 +112,7 @@ class Program {
 
     Value return_val = Value();
 public:
-    uint32_t EVT_PRINT;
+    uint32_t EVT_PRINT, EVT_MOVE, EVT_ROTL, EVT_ROTR;
 
     Statement* entrypoint;
 
@@ -317,11 +318,17 @@ public:
     virtual Value evaluate(Program& p) const override;
 };
 
+struct ReadTile {
+    ReadTile(): m{}, is_open{false} {}
+    std::mutex m;
+    bool is_open;
+};
+
 class BuiltinCall : public Expression {
     std::vector<Expression*> args;
 public:
     enum Type {
-        LENGTH, PRINT, ELEM, TUPLE
+        LENGTH, PRINT, ELEM, TUPLE, MOVE, ROTR, ROTL, FORWARDS, READ_FRONT
     } type;
     BuiltinCall(int32_t lineno, Type type , std::vector<Expression*> args) : Expression{lineno}, type{type}, args{args} {}
 

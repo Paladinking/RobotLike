@@ -18,6 +18,14 @@ public:
 
     void render(float offset_x, float offset_y);
 
+    void forward(Maze& map);
+
+    void rotate_left();
+
+    void rotate_right();
+
+    void move(Maze& map, int32_t dx, int32_t dy);
+
     bool add_equipment(std::shared_ptr<Equipment> new_equipment);
 
     bool remove_equipment(EQUIPMENT_SLOTS slot);

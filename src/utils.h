@@ -37,6 +37,8 @@ public:
     int32_t dist_manhattan_to(vec2i const& other);
     int32_t dist_manhattan_diag_to(vec2i const& other);
 
+    double angle();
+
     int32_t x, y;
 };
 

@@ -8,6 +8,14 @@ void Program::runtime_error(int32_t lineno, const std::string& cause) {
     throw RuntimeError(lineno, cause);
 }
 
+void Program::pause() {
+    paused.store(true);
+}
+
+void Program::resume() {
+    paused.store(false);
+}
+
 void Program::load_program(std::vector<std::unique_ptr<Statement>> statements, std::vector<std::unique_ptr<Expression>> expressions, std::vector<std::unique_ptr<Function>> all_funcs, Statement* entry) {
     if (run_thread.joinable()) {
         stop();
@@ -65,6 +73,9 @@ void Program::start() {
 
 void Program::set_events(uint32_t print_evt) {
     EVT_PRINT = print_evt;
+    EVT_MOVE = print_evt + 1;
+    EVT_ROTL = print_evt + 2;
+    EVT_ROTR = print_evt + 3;
 }
 
 void Program::status(int32_t lineno) {
@@ -402,7 +413,80 @@ Value UniOp::evaluate(Program& p) const {
 
 Value BuiltinCall::evaluate(Program& p) const {
     p.status(lineno);
-    if (type == ELEM) {
+    auto intv = [&p, this](Value v) -> int64_t {
+        if (!v.numeric()) {
+            p.remove_ref(v);
+            p.runtime_error(lineno, "Invalid integer");
+            return 0;
+        }
+        if (v.type == Value::DOUBLE) {
+            int64_t i = static_cast<int64_t>(v.d);
+            if (static_cast<double>(i) != v.d) {
+                p.remove_ref(v);
+                p.runtime_error(lineno, "Invalid integer");
+                return 0;
+            }
+            p.remove_ref(v);
+            return i;
+        } else {
+            p.remove_ref(v);
+            return v.i;
+        }
+    };
+    if (type == READ_FRONT) {
+        SDL_Event e;
+        e.type = p.EVT_ROTR;
+        if (args.size() != 0) {
+            p.runtime_error(lineno, "Wrong number of arguments");
+            return Value();
+        }
+        SDL_PushEvent(&e);
+        p.pause();
+    }
+    if (type == ROTR) {
+        SDL_Event e;
+        e.type = p.EVT_ROTR;
+        if (args.size() != 0) {
+            p.runtime_error(lineno, "Wrong number of arguments");
+            return Value();
+        }
+        SDL_PushEvent(&e);
+        p.pause();
+        return Value();
+    } else if (type == ROTL) {
+        SDL_Event e;
+        e.type = p.EVT_ROTL;
+        if (args.size() != 0) {
+            p.runtime_error(lineno, "Wrong number of arguments");
+            return Value();
+        }
+        SDL_PushEvent(&e);
+        p.pause();
+        return Value();
+    } else if (type == MOVE) {
+        SDL_Event e;
+        e.type = p.EVT_MOVE;
+        if (args.size() != 2) {
+            p.runtime_error(lineno, "Wrong number of arguments");
+            return Value();
+        }
+        int64_t x = intv(args[0]->evaluate(p));
+        int64_t y = intv(args[1]->evaluate(p));
+        if (x < 0) {
+            x = 0b11;
+        } else if (x > 0) {
+            x = 0b01;
+        }
+        if (y < 0) {
+            y = 0b11;
+        } else if (y > 0) {
+            y = 0b01;
+        }
+        // 4-bit value two x, two y.
+        e.user.data1 = (void*)(uintptr_t)(x << 2 | y);
+        SDL_PushEvent(&e);
+        p.pause();
+    } else if (type == ELEM) {
         if (args.size() != 2) {
             p.runtime_error(lineno, "Wrong number of arguments");
             return Value();

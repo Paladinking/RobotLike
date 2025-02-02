@@ -22,6 +22,9 @@ Parser::Parser() {
     builtins.insert({"print", BuiltinCall::PRINT});
     builtins.insert({"elem", BuiltinCall::ELEM});
     builtins.insert({"tuple", BuiltinCall::TUPLE});
+    builtins.insert({"move", BuiltinCall::MOVE});
+    builtins.insert({"rotate_left", BuiltinCall::ROTL});
+    builtins.insert({"rotate_right", BuiltinCall::ROTR});
 }
 
 // Advances ix to point to first non-space in string
@@ -420,6 +423,10 @@ void Parser::parse_expression_list(Lines lines, std::vector<Expression*>& dest) 
             }
         } while (is_empty(lines[line]));
         skip_spaces(ix, lines[line]);
+    }
+    if (lines[line][ix] == ')') {
+        ++ix;
+        return;
     }
     dest.push_back(parse_expression(lines));
     while (1) {

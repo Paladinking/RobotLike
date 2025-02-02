@@ -175,6 +175,8 @@ void Maze::generate_maze() {
         connect_rooms(rooms[ix1], rooms[ix2]);
     }
 
+    start = rooms.front().middle();
+    goal = rooms.back().middle();
 }
 
 Maze::Maze() : map{MAZE_WIDTH} { generate_maze(); }

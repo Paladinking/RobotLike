@@ -70,7 +70,11 @@ void GameState::init(WindowState *window_state) {
         SDL_RWclose(file);
     }
 
-    EVT_PRINT = SDL_RegisterEvents(1);
+    EVT_PRINT = SDL_RegisterEvents(10);
+    EVT_MOVE = EVT_PRINT + 1;
+    EVT_ROTL = EVT_PRINT + 2;
+    EVT_ROTR = EVT_PRINT + 3;
+
     program.set_events(EVT_PRINT);
 
     comps.set_window_state(window_state);
@@ -91,14 +95,15 @@ void GameState::init(WindowState *window_state) {
     // constexpr int32_t tilesize = 10;
     textures.reserve(14);
     Texture* tex = new Texture{};
-    tex->load_from_file("../../assets/Tile.png", TILE_SIZE, TILE_SIZE);
+    tex->load_from_file("assets/Tile.png", TILE_SIZE, TILE_SIZE);
     textures.emplace_back(tex);
     maze.set_texture(textures[0].get());
     tex = new Texture{};
-    tex->load_from_file("../../assets/Robot.png", TILE_SIZE, TILE_SIZE);
+    tex->load_from_file("assets/Robot.png", TILE_SIZE, TILE_SIZE);
     textures.emplace_back(tex);
 
-    player.reset(new Player{ 0, 0, textures[1].get() });
+
+    player.reset(new Player{  maze.start.first, maze.start.second, textures[1].get() });
 
     for (int32_t i = 0; i < 5; i++) {
         auto slime = new Slime{ engine::random(0, 20), engine::random(0, 20), i };
@@ -118,6 +123,14 @@ void GameState::render() {
     player->render(0, 0);
 }
 void GameState::tick(const Uint64 delta, StateStatus &res) {
+    if (paused) {
+        action_delay -= static_cast<Sint64>(delta);
+        if (action_delay <= 0) {
+            action_delay = 0;
+            paused = false;
+            program.resume();
+        }
+    }
     res = next_state;
     if (next_state.will_leave()) {
         LOG_DEBUG("Saving...");
@@ -176,6 +189,26 @@ void GameState::handle_down(const SDL_Keycode key, const Uint8 mouse) {
             mouse_down = true;
             box.unselect();
             SDL_StopTextInput();
+            const auto& lines = box.get_text();
+            Parser p{};
+            box.set_errors({});
+            if (!p.parse_lines(lines)) {
+                box.set_errors(p.errors);
+            } else {
+                log_ix = 0;
+                for(auto& b: log) {
+                    b->set_text("");
+                }
+                program.load_program(std::move(p.all_statements),
+                                     std::move(p.all_expressions),
+                                     std::move(p.all_functions),
+                                     p.entry);
+                p.entry = nullptr;
+                p.all_statements.clear();
+                p.all_expressions.clear();
+                p.all_functions.clear();
+                program.start();
+            }
         }
     } else if (box.is_selected()) {
         box.handle_keypress(key);
@@ -214,7 +247,33 @@ void GameState::handle_textinput(const SDL_TextInputEvent &e) {
 
 void GameState::handle_user_event(SDL_UserEvent &e) {
     std::cout << "User event" << std::endl;
-    if (e.type == EVT_PRINT) {
+    if (e.type == EVT_ROTL) {
+        player->rotate_left();
+        paused = true;
+        action_delay = 500;
+    } else if (e.type == EVT_ROTR) {
+        player->rotate_right();
+        paused = true;
+        action_delay = 500;
+    } else if (e.type == EVT_MOVE) {
+        uint32_t v = (uintptr_t) e.data1;
+        int64_t x = 0, y = 0;
+        if ((v & 0b11) == 0b11) {
+            y = -1;
+        } else if ((v & 0b11) == 0b01) {
+            y = 1;
+        }
+        if ((v & 0b1100) == 0b1100) {
+            x = -1;
+        } else if ((v & 0b1100) == 0b0100) {
+            x = 1;
+        }
+        std::cout << "Move " << x << ", " << y  << ", " << e.timestamp << std::endl;
+        player->move(maze, x, y);
+
+        paused = true;
+        action_delay = 500;
+    } else if (e.type == EVT_PRINT) {
         auto* s = static_cast<std::string*>(e.data1);
         if (log_ix == log.size()) {
             for (int i = 0; i < log.size() - 1; ++i) {

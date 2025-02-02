@@ -64,5 +64,8 @@ private:
 
     double dpi_scale = 0.0;
 
-    Uint32 EVT_PRINT;
+    bool paused = false;
+    Sint64 action_delay = 0;
+
+    Uint32 EVT_PRINT, EVT_MOVE, EVT_ROTR, EVT_ROTL;
 };
