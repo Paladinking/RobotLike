@@ -1,9 +1,12 @@
 #include "game.h"
 #include "engine/log.h"
 #include "config.h"
+
+#include "parser.h"
 #include "string.h"
 #include <array>
 #include "slime.h"
+
 #include "utils.h"
 
 GameState::GameState() : State()  { enemies.reserve(32); }
@@ -67,6 +70,24 @@ void GameState::init(WindowState *window_state) {
         SDL_RWclose(file);
     }
 
+    EVT_PRINT = SDL_RegisterEvents(1);
+    program.set_events(EVT_PRINT);
+
+    comps.set_window_state(window_state);
+    int log_size = 8;
+    int log_w = 500;
+    int log_h = 2 * BOX_TEXT_MARGIN + log_size * BOX_LINE_HEIGHT;
+    int log_x = WIDTH / 2 - log_w / 2;
+    int log_y = HEIGHT - log_h;
+    for (int i = 0; i < log_size; ++i) {
+        log.push_back(comps.add(TextBox(log_x + BOX_TEXT_MARGIN,
+                                        log_y + BOX_LINE_HEIGHT * i + BOX_TEXT_MARGIN,
+                                        log_w - 2 * BOX_TEXT_MARGIN, BOX_LINE_HEIGHT,
+                                        "", *window_state)));
+        log.back()->set_align(Alignment::LEFT);
+    }
+    comps.add(Box(log_x, log_y, log_w, log_h, 4));
+
     // constexpr int32_t tilesize = 10;
     textures.reserve(14);
     Texture* tex = new Texture{};
@@ -83,12 +104,14 @@ void GameState::init(WindowState *window_state) {
         auto slime = new Slime{ engine::random(0, 20), engine::random(0, 20), i };
         enemies.emplace_back(slime);
     }
-    
+
 }
 
 void GameState::render() {
     box.render();
     maze.render(0, 0);
+    comps.render(0, 0);
+
     for (size_t i{0}; i < enemies.size(); ++i) {
         enemies[i]->render(0, 0);
     }
@@ -187,6 +210,26 @@ void GameState::handle_textinput(const SDL_TextInputEvent &e) {
     }
     char c = e.text[0];
     box.input_char(c);
+}
+
+void GameState::handle_user_event(SDL_UserEvent &e) {
+    std::cout << "User event" << std::endl;
+    if (e.type == EVT_PRINT) {
+        auto* s = static_cast<std::string*>(e.data1);
+        if (log_ix == log.size()) {
+            for (int i = 0; i < log.size() - 1; ++i) {
+                log[i]->set_text(log[i + 1]->get_text());
+            }
+        } else {
+            ++log_ix;
+        }
+        log[log_ix - 1]->set_text(*s);
+        for (int i = 1; i< log.size(); ++i) {
+
+        }
+        std::cout << *s << std::flush;
+        delete s;
+    }
 }
 
 void GameState::handle_focus_change(bool focus) {

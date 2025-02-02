@@ -26,7 +26,6 @@ void Maze::generate_maze() {
         }
     };
 
-
     for (auto& row: map) {
         std::fill(row.begin(), row.end(), TileType::VOID);
     }
@@ -89,7 +88,6 @@ void Maze::generate_maze() {
             std::size_t operator()(std::pair<int32_t, int32_t> p) const {
                 return std::hash<int32_t>{}(p.first) ^ 
                        std::hash<int32_t>{}(p.second);
-                return 0;
             }
         };
         std::priority_queue<Node*, std::vector<Node*>, decltype(cmpr)> queue{cmpr};
@@ -196,10 +194,11 @@ void Maze::render(float offset_x, float offset_y) {
             SDL_FRect rect = {offset_x + TILE_SIZE * i,
                               offset_y + TILE_SIZE * j, TILE_SIZE,
                               TILE_SIZE};
-            if (is_open(i, j)) {
+            if (!is_open(i, j)) {
                 color = GRAY;
-                draw_texture = texture_tile != nullptr;
                 (i % 2 == 0) ? LIGHTGRAY : ((j % 2 == 0) ? GRAY : BLACK);
+            } else {
+                draw_texture = texture_tile != nullptr;
             }
             if (draw_texture) {
                 texture_tile->render_corner(offset_x + TILE_SIZE * i, offset_y + TILE_SIZE * j);

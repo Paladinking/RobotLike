@@ -119,7 +119,7 @@ void Editbox::set_text(std::string &text) {
     lines.clear_undo_stack();
 }
 
-void Editbox::set_errors(std::vector<std::pair<std::string, uint32_t>> msgs) {
+void Editbox::set_errors(std::vector<std::pair<std::string, int32_t>> msgs) {
     error_msg.clear();
     for (const auto &error : msgs) {
         error_msg.emplace_back(
