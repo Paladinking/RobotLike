@@ -24,8 +24,8 @@ void Slime::tick() {
 
 void Slime::render(float offset_x, float offset_y) {
     SDL_Color color { 0x0, 0xff, 0x0, 0xff };
-    SDL_FRect rect = {offset_x + (pos.x * TILE_SIZE) - size / 2,
-                        offset_y + (pos.y * TILE_SIZE) - size / 2,
+    SDL_FRect rect = {offset_x + (pos.x * TILE_SIZE),
+                        offset_y + (pos.y * TILE_SIZE),
                         TILE_SIZE, TILE_SIZE};
     SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b,
                             color.a);
