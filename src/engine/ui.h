@@ -4,7 +4,7 @@
 #include "engine.h"
 #include "texture.h"
 #include "log.h"
-#include <SDL_ttf.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -126,7 +126,7 @@ public:
     void set_border_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 private:
-    SDL_Color color;
+    SDL_FColor color;
 
     int x_offset = 0, y_offset = 0;
 

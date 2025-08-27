@@ -27,22 +27,29 @@ void GameState::set_font_size() {
 }
 
 void GameState::handle_size_change() {
-    SDL_RenderGetLogicalSize(gRenderer, &window_state->screen_width,
-                             &window_state->screen_height);
-    SDL_GetRendererOutputSize(gRenderer, &window_state->window_width,
+    SDL_RendererLogicalPresentation p;
+    SDL_GetRenderLogicalPresentation(gRenderer,
+                             &window_state->screen_width,
+                             &window_state->screen_height, &p);
+    SDL_GetCurrentRenderOutputSize(gRenderer, 
+                              &window_state->window_width,
                               &window_state->window_height);
     set_font_size();
 }
 
 void GameState::init(WindowState *window_state) {
     SDL_ShowWindow(gWindow);
-    SDL_RenderSetVSync(gRenderer, 1);
-    SDL_RenderSetLogicalSize(gRenderer, WIDTH, HEIGHT);
+    SDL_SetRenderVSync(gRenderer, 1);
+    SDL_SetRenderLogicalPresentation(gRenderer, WIDTH, HEIGHT,
+                                    SDL_LOGICAL_PRESENTATION_LETTERBOX);
     State::init(window_state);
 
-    SDL_RenderGetLogicalSize(gRenderer, &window_state->screen_width,
-                             &window_state->screen_height);
-    SDL_GetRendererOutputSize(gRenderer, &window_state->window_width,
+    SDL_RendererLogicalPresentation p;
+    SDL_GetRenderLogicalPresentation(gRenderer,
+                             &window_state->screen_width,
+                             &window_state->screen_height, &p);
+    SDL_GetCurrentRenderOutputSize(gRenderer,
+                              &window_state->window_width,
                               &window_state->window_height);
 
     LOG_INFO("Physical size: %d, %d\n", window_state->window_width, window_state->window_height);
@@ -55,11 +62,11 @@ void GameState::init(WindowState *window_state) {
 
     set_font_size();
 
-    SDL_RWops* file = SDL_RWFromFile("program.txt", "r");
+    SDL_IOStream* file = SDL_IOFromFile("program.txt", "r");
     if (file != nullptr) {
-        Sint64 size = SDL_RWsize(file);
+        Sint64 size = SDL_GetIOSize(file);
         char *data = new char[size];
-        if (SDL_RWread(file, data, 1, size) == size) {
+        if (SDL_ReadIO(file, data, size) == size) {
             std::string str{data, static_cast<std::size_t>(size)};
             if (str.back() == '\n') {
                 str.pop_back();
@@ -67,7 +74,7 @@ void GameState::init(WindowState *window_state) {
             box.set_text(str);
         }
         delete[] data;
-        SDL_RWclose(file);
+        SDL_CloseIO(file);
     }
 
     EVT_PRINT = SDL_RegisterEvents(10);
@@ -136,14 +143,14 @@ void GameState::tick(const Uint64 delta, StateStatus &res) {
     res = next_state;
     if (next_state.will_leave()) {
         LOG_DEBUG("Saving...");
-        SDL_RWops* file = SDL_RWFromFile("program.txt", "w");
+        SDL_IOStream* file = SDL_IOFromFile("program.txt", "w");
         if (file != nullptr) {
             const auto& lines = box.get_text();
             for (const std::string& s : lines) {
-                SDL_RWwrite(file, s.c_str(), 1, s.size());
-                SDL_RWwrite(file, "\n", 1, 1);
+                SDL_WriteIO(file, s.c_str(), s.size());
+                SDL_WriteIO(file, "\n", 1);
             }
-            SDL_RWclose(file);
+            SDL_CloseIO(file);
         }
         return;
     }
@@ -157,21 +164,21 @@ void GameState::handle_up(SDL_Keycode key, Uint8 mouse) {
     if (mouse == SDL_BUTTON_LEFT) {
         if (!box.is_pressed(window_state->mouseX, window_state->mouseY) && mouse_down) {
             box.unselect();
-            SDL_StopTextInput();
+            SDL_StopTextInput(gWindow);
         }
         mouse_down = false;
     } else {
         switch (key) {
-            case SDLK_w:
+            case SDLK_W:
                 if (player_mov == vec2i_from_dir(DIR_UP)) player_mov = vec2i{0, 0};
                 break;
-            case SDLK_d:
+            case SDLK_D:
                 if (player_mov == vec2i_from_dir(DIR_RIGHT)) player_mov = vec2i{0, 0};
                 break;
-            case SDLK_s:
+            case SDLK_S:
                 if (player_mov == vec2i_from_dir(DIR_DOWN)) player_mov = vec2i{0, 0};
                 break;
-            case SDLK_a:
+            case SDLK_A:
                 if (player_mov == vec2i_from_dir(DIR_LEFT)) player_mov = vec2i{0, 0};
                 break;
             default:
@@ -185,12 +192,12 @@ void GameState::handle_down(const SDL_Keycode key, const Uint8 mouse) {
         next_state.action = StateStatus::POP;
     } else if (mouse == SDL_BUTTON_LEFT) {
         if (box.is_pressed(window_state->mouseX, window_state->mouseY)) {
-            SDL_StartTextInput();
+            SDL_StartTextInput(gWindow);
             box.select();
         } else {
             mouse_down = true;
             box.unselect();
-            SDL_StopTextInput();
+            SDL_StopTextInput(gWindow);
             const auto& lines = box.get_text();
             Parser p{};
             box.set_errors({});
@@ -216,16 +223,16 @@ void GameState::handle_down(const SDL_Keycode key, const Uint8 mouse) {
         box.handle_keypress(key);
     } else {
         switch (key) {
-            case SDLK_w:
+            case SDLK_W:
                 player_mov = vec2i_from_dir(DIR_UP);
                 break;
-            case SDLK_d:
+            case SDLK_D:
                 player_mov = vec2i_from_dir(DIR_RIGHT);
                 break;
-            case SDLK_s:
+            case SDLK_S:
                 player_mov = vec2i_from_dir(DIR_DOWN);
                 break;
-            case SDLK_a:
+            case SDLK_A:
                 player_mov = vec2i_from_dir(DIR_LEFT);
                 break;
             default:
@@ -307,7 +314,7 @@ void GameState::handle_focus_change(bool focus) {
     if (!focus) {
         box.unselect();
         mouse_down = false;
-        SDL_StopTextInput();
+        SDL_StopTextInput(gWindow);
     }
 }
 

@@ -6,7 +6,7 @@
 Texture::Texture(SDL_Surface* s, const int w, const int h) {
     SDL_Texture* new_texture = SDL_CreateTextureFromSurface(gRenderer, s);
     if (new_texture == nullptr) {
-        throw image_load_exception(std::string(IMG_GetError()));
+        throw image_load_exception(std::string(SDL_GetError()));
     }
     this->width = w;
     this->height = h;
@@ -19,10 +19,11 @@ void Texture::load_from_file(const std::string& path) {
 	SDL_Texture* new_texture = IMG_LoadTexture(gRenderer, path.c_str());
 	
 	if (new_texture == nullptr) {
-		throw image_load_exception(std::string(IMG_GetError()));
+		throw image_load_exception(std::string(SDL_GetError()));
 	}
 	// Use QueryTexture to set width and height.
-	SDL_QueryTexture(new_texture, nullptr, nullptr, &width, &height);
+        width = texture->w;
+        height = texture->h;
 	texture = new_texture;
 }
 
@@ -30,22 +31,23 @@ void Texture::load_from_file(const std::string& path, const int w, const int h) 
 	free();
 	SDL_Surface* surface = IMG_Load(path.c_str());
 	if (surface == nullptr) {
-            throw image_load_exception(std::string(IMG_GetError()));
-	}
-	SDL_PixelFormat* format = surface->format;
-	SDL_Surface* stretched = SDL_CreateRGBSurfaceWithFormat(0, w, h, format->BitsPerPixel, format->format);
-	if (stretched == nullptr) {
-            SDL_FreeSurface(surface);
             throw image_load_exception(std::string(SDL_GetError()));
 	}
-	SDL_BlitScaled(surface, nullptr, stretched, nullptr);
-	SDL_FreeSurface(surface);
+	SDL_PixelFormat format = surface->format;
+	SDL_Surface* stretched = SDL_CreateSurface(w, h, format);
+	if (stretched == nullptr) {
+            SDL_DestroySurface(surface);
+            throw image_load_exception(std::string(SDL_GetError()));
+	}
+	SDL_BlitSurfaceScaled(surface, nullptr, stretched, nullptr,
+                              SDL_SCALEMODE_NEAREST);
+	SDL_DestroySurface(surface);
 	
 	texture = SDL_CreateTextureFromSurface(gRenderer, stretched);
-	SDL_FreeSurface(stretched);
+	SDL_DestroySurface(stretched);
 	
 	if (texture == nullptr) {
-            throw image_load_exception(std::string(IMG_GetError()));
+            throw image_load_exception(std::string(SDL_GetError()));
 	}
 	
 	width = w;
@@ -55,17 +57,18 @@ void Texture::load_from_file(const std::string& path, const int w, const int h) 
 void Texture::load_sub_image(SDL_Surface *src, SDL_Rect source_rect, int w, int h) {
     free();
 
-    SDL_PixelFormat* format = src->format;
-    SDL_Surface* stretched = SDL_CreateRGBSurfaceWithFormat(0, w, h, format->BitsPerPixel, format->format);
+    SDL_PixelFormat format = src->format;
+    SDL_Surface* stretched = SDL_CreateSurface(w, h, format);
     if (stretched == nullptr) {
-        throw image_load_exception(std::string(IMG_GetError()));
+        throw image_load_exception(std::string(SDL_GetError()));
     }
-    SDL_BlitScaled(src, &source_rect, stretched, nullptr);
+    SDL_BlitSurfaceScaled(src, &source_rect, stretched, nullptr,
+                          SDL_SCALEMODE_NEAREST);
     texture = SDL_CreateTextureFromSurface(gRenderer, stretched);
-    SDL_FreeSurface(stretched);
+    SDL_DestroySurface(stretched);
 
     if (texture == nullptr) {
-        throw image_load_exception(std::string(IMG_GetError()));
+        throw image_load_exception(std::string(SDL_GetError()));
     }
 
     width = w;
@@ -87,18 +90,22 @@ void Texture::free() {
 }
 
 void Texture::render_corner(int x, int y) const {
-    SDL_Rect rect = {x, y, width, height};
-    SDL_RenderCopy(gRenderer, texture, nullptr, &rect);
+    SDL_FRect rect = {(float)x, (float)y, (float)width, (float)height};
+    SDL_RenderTexture(gRenderer, texture, nullptr, &rect);
 }
 
 void Texture::render(const int x, const int y) const {
-    SDL_Rect rect = {x - width / 2, y - height / 2, width, height};
-    SDL_RenderCopy(gRenderer, texture, nullptr, &rect);
+    SDL_FRect rect = {(float)(x - width / 2.0f),
+                      (float)(y - height / 2.0f),
+                      (float)width, (float)height};
+    SDL_RenderTexture(gRenderer, texture, nullptr, &rect);
 }
 
 void Texture::render(const int x, const int y, const double angle) const {
-    SDL_Rect rect = {x - width / 2, y - height / 2, width, height};
-    SDL_RenderCopyEx(
+    SDL_FRect rect = {(float)(x - width / 2.0f),
+                      (float)(y - height / 2.0f), 
+                      (float)width, (float)height};
+    SDL_RenderTextureRotated(
         gRenderer,
         texture,
         nullptr,
@@ -108,9 +115,12 @@ void Texture::render(const int x, const int y, const double angle) const {
         SDL_FLIP_NONE);
 }
 
-void Texture::render(const int x, const int y, const double angle, const SDL_RendererFlip flip) const {
-    SDL_Rect rect = {x - width / 2, y - height / 2, width, height};
-    SDL_RenderCopyEx(
+void Texture::render(const int x, const int y, const double angle, 
+                     const SDL_FlipMode flip) const {
+    SDL_FRect rect = {(float)(x - width / 2.0f),
+                      (float)(y - height / 2.0f),
+                      (float)width, (float)height};
+    SDL_RenderTextureRotated(
         gRenderer,
         texture,
         nullptr,
@@ -120,15 +130,18 @@ void Texture::render(const int x, const int y, const double angle, const SDL_Ren
         flip);
 }
 
-void Texture::render_corner_f(float x, float y, float w, float h, double angle, SDL_RendererFlip flip) const {
+void Texture::render_corner_f(float x, float y, float w, float h, 
+                              double angle, SDL_FlipMode flip) const {
     SDL_FRect dest = {x, y, w, h};
-    SDL_RenderCopyExF(gRenderer, texture, nullptr, &dest, angle, nullptr, flip);
+    SDL_RenderTextureRotated(gRenderer, texture, nullptr, &dest, 
+                             angle, nullptr, flip);
 }
 
 void Texture::render(const int dest_x, const int dest_y, const int x, const int y, const int w, const int h) const {
-    SDL_Rect target = {dest_x, dest_y, width, height};
-    SDL_Rect source = {x, y, w, h};
-    SDL_RenderCopy(gRenderer, texture, &source, &target);
+    SDL_FRect target = {(float)dest_x, (float)dest_y,
+                        (float)width, (float)height};
+    SDL_FRect source = {(float)x, (float)y, (float)w, (float)h};
+    SDL_RenderTexture(gRenderer, texture, &source, &target);
 }
 
 int Texture::get_height() const {

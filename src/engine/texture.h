@@ -1,8 +1,8 @@
 #ifndef TEXTURE_H_00
 #define TEXTURE_H_00
 
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_Image/SDL_image.h>
 #include <string>
 
 /**
@@ -50,7 +50,7 @@ class Texture {
 
         void render_corner(int x, int y) const;
 
-        void render_corner_f(float x, float y, float w, float h, double angle, SDL_RendererFlip flip) const;
+        void render_corner_f(float x, float y, float w, float h, double angle, SDL_FlipMode flip) const;
 		
         /**
 	 * Renders this texture at position (x, y) using the global gRenderer.
@@ -71,7 +71,7 @@ class Texture {
         /**
          * Render this texture at position (x, y) rotated by angle and flipped according to flip.
          */
-        void render(int x, int y, double angle, SDL_RendererFlip flip) const;
+        void render(int x, int y, double angle, SDL_FlipMode flip) const;
 		
         /**
 	 * Returns the width of this texture.

@@ -207,7 +207,7 @@ void Maze::render(float offset_x, float offset_y) {
             } else {
                 SDL_SetRenderDrawColor(gRenderer, color.r, color.g, color.b,
                                         color.a);
-                SDL_RenderFillRectF(gRenderer, &rect);
+                SDL_RenderFillRect(gRenderer, &rect);
             }
         }
     }

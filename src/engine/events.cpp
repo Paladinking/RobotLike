@@ -72,7 +72,7 @@ EventScope::~EventScope() {
     if (events == nullptr) {
         return;
     }
-    auto stamp = SDL_GetTicks64();
+    auto stamp = SDL_GetTicks();
     auto it = cb_indicies.begin();
     while (it != cb_indicies.end()) {
         event_t evt = *it;

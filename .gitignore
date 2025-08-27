@@ -1,0 +1,10 @@
+.cache
+.idea
+build
+bin
+__pycache__
+lib
+program.txt
+compile_commands.json
+*.gif
+*.mp4

@@ -2,6 +2,7 @@
 #include "maze.h"
 #include <cassert>
 #include <iostream>
+#include <cmath>
 
 
 Player::Player(int32_t x, int32_t y, Texture *tex) : pos(x, y), direction(vec2i_from_dir(DIR_LEFT)), texture(tex) {}
@@ -53,6 +54,9 @@ void Player::move(Maze& map, int32_t dx, int32_t dy) {
     }
 }
 
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
 
 void Player::render(float offset_x, float offset_y) {
     texture->render(offset_x + pos.x * TILE_SIZE + TILE_SIZE / 2, offset_y + pos.y * TILE_SIZE + TILE_SIZE / 2,

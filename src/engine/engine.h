@@ -1,7 +1,7 @@
 #ifndef ENGINE_00_H
 #define ENGINE_00_H
-#include <SDL.h>
-#include <SDL_ttf.h>
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include "events.h"
 #include <random>
 
@@ -16,7 +16,7 @@ extern TTF_Font *gFont;
  * Struct used for putting an SDL_Surface in a smart-pointer.
  */
 struct SurfaceDeleter {
-    void operator()(SDL_Surface *s) { SDL_FreeSurface(s); }
+    void operator()(SDL_Surface *s) { SDL_DestroySurface(s); }
 };
 
 extern std::minstd_rand generator;

@@ -26,30 +26,32 @@ void Game::create() {
         throw SDL_exception("STL is not initialized!");
     }
 
-    gWindow = SDL_CreateWindow(initial_title.c_str(), SDL_WINDOWPOS_UNDEFINED,
-                               SDL_WINDOWPOS_UNDEFINED, initial_width,
-                               initial_height, SDL_WINDOW_HIDDEN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    gWindow = SDL_CreateWindow(initial_title.c_str(), initial_width,
+                               initial_height, SDL_WINDOW_HIDDEN | 
+                               SDL_WINDOW_FULLSCREEN | 
+                               SDL_WINDOW_BORDERLESS);
 
     if (gWindow == nullptr) {
         throw SDL_exception("Window could not be created, " +
                             std::string(SDL_GetError()));
     }
 
-    gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED);
+    gRenderer = SDL_CreateRenderer(gWindow, NULL);
     if (gRenderer == nullptr) {
         SDL_DestroyWindow(gWindow);
         throw SDL_exception("Renderer could not be created, " +
                             std::string(SDL_GetError()));
     }
 
-    SDL_RenderSetVSync(gRenderer, 1);
+    SDL_SetRenderVSync(gRenderer, 1);
     SDL_SetRenderDrawBlendMode(gRenderer, SDL_BLENDMODE_BLEND);
     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
     SDL_GetWindowSize(gWindow, &window_state.window_width,
                       &window_state.window_height);
-    SDL_GetRendererOutputSize(gRenderer, &window_state.screen_width,
-                              &window_state.screen_height);
+    SDL_GetCurrentRenderOutputSize(gRenderer, 
+                                   &window_state.screen_width,
+                                   &window_state.screen_height);
     destroyed = false;
 
     window_state.keyboard_state = SDL_GetKeyboardState(nullptr);
@@ -61,48 +63,50 @@ void Game::run() {
         return;
     }
     running = true;
-    Uint64 last_time = SDL_GetTicks64();
+    Uint64 last_time = SDL_GetTicks();
 
     while (true) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             switch (e.type) {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 exit_game();
                 break;
-            case SDL_KEYDOWN:
+            case SDL_EVENT_KEY_DOWN:
                 handle_keydown(e.key);
                 break;
-            case SDL_KEYUP:
+            case SDL_EVENT_KEY_UP:
                 handle_keyup(e.key);
                 break;
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
                 window_state.mouseX = e.motion.x;
                 window_state.mouseY = e.motion.y;
                 break;
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 handle_mousedown(e.button);
                 break;
-            case SDL_MOUSEBUTTONUP:
+            case SDL_EVENT_MOUSE_BUTTON_UP:
                 handle_mouseup(e.button);
                 break;
-            case SDL_MOUSEWHEEL:
+            case SDL_EVENT_MOUSE_WHEEL:
                 handle_mousewheel(e.wheel);
                 break;
-            case SDL_TEXTINPUT:
+            case SDL_EVENT_TEXT_INPUT:
                 handle_textinput(e.text);
                 break;
-            case SDL_WINDOWEVENT:
-                if (e.window.event == SDL_WINDOWEVENT_RESIZED ||
-                    e.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
-                    handle_size_change();
-                } else if (e.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-                    handle_focus_change(false);
-                } else if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                    handle_focus_change(true);
-                }
+            case SDL_EVENT_WINDOW_RESIZED:
+            case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+            case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+                handle_size_change();
+                break;
+            case SDL_EVENT_WINDOW_FOCUS_LOST:
+                handle_focus_change(false);
+                break;
+            case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                handle_focus_change(true);
+                break;
             default:
-                if (e.type >= SDL_USEREVENT) {
+                if (e.type >= SDL_EVENT_USER) {
                     handle_user_event(e.user);
                 }
             }
@@ -110,7 +114,7 @@ void Game::run() {
         }
         window_state.mouse_mask = SDL_GetMouseState(nullptr, nullptr);
 
-        Uint64 cur_time = SDL_GetTicks64();
+        Uint64 cur_time = SDL_GetTicks();
         this->tick(cur_time - last_time);
         if (!running)
             break;
@@ -214,11 +218,11 @@ void StateGame::update_window(const State *const state) {
 }
 
 void StateGame::handle_keydown(SDL_KeyboardEvent &e) {
-    states.top()->handle_down(e.keysym.sym, 0);
+    states.top()->handle_down(e.key, 0);
 }
 
 void StateGame::handle_keyup(SDL_KeyboardEvent &e) {
-    states.top()->handle_up(e.keysym.sym, 0);
+    states.top()->handle_up(e.key, 0);
 }
 
 void StateGame::handle_mousedown(SDL_MouseButtonEvent &e) {

@@ -312,7 +312,7 @@ void Editbox::handle_keypress(SDL_Keycode key) {
 
 void Editbox::render() {
     SDL_SetRenderDrawColor(gRenderer, UI_BORDER_COLOR);
-    SDL_Rect rect = {x, y, BOX_W, BOX_H};
+    SDL_FRect rect = {(float)x, (float)y, (float)BOX_W, (float)BOX_H};
     SDL_RenderFillRect(gRenderer, &rect);
     SDL_SetRenderDrawColor(gRenderer, UI_BACKGROUND_COLOR);
     rect = {rect.x + 2, rect.y + 2, rect.w - 4, rect.h - 4};
@@ -324,18 +324,23 @@ void Editbox::render() {
         for (int row = lines.get_selection_start().row;
              row < lines.get_selection_end().row; ++row) {
             int size = lines.line_size(row);
-            SDL_Rect r = {x + BOX_TEXT_MARGIN + BOX_CHAR_WIDTH * start,
-                          y + BOX_LINE_HEIGHT * row + BOX_TEXT_MARGIN,
-                          BOX_CHAR_WIDTH * (size + 1 - start), BOX_LINE_HEIGHT};
+            SDL_FRect r = {(float)(x + BOX_TEXT_MARGIN + 
+                                   BOX_CHAR_WIDTH * start),
+                          (float)(y + BOX_LINE_HEIGHT * row +
+                                  BOX_TEXT_MARGIN),
+                          (float)(BOX_CHAR_WIDTH * (size + 1 - start)),
+                          (float)(BOX_LINE_HEIGHT)};
             SDL_RenderFillRect(gRenderer, &r);
             start = 0;
         }
         int col = lines.get_selection_end().col;
-        SDL_Rect r = {x + BOX_TEXT_MARGIN + BOX_CHAR_WIDTH * start,
-                      static_cast<int>(
-                          y + BOX_LINE_HEIGHT * lines.get_selection_end().row +
-                          BOX_TEXT_MARGIN),
-                      BOX_CHAR_WIDTH * (col - start), BOX_LINE_HEIGHT};
+        SDL_FRect r = {(float)(x + BOX_TEXT_MARGIN + 
+                               BOX_CHAR_WIDTH * start),
+                      (float)(y + BOX_LINE_HEIGHT * 
+                              lines.get_selection_end().row + 
+                              BOX_TEXT_MARGIN),
+                      (float)(BOX_CHAR_WIDTH * (col - start)),
+                      (float)(BOX_LINE_HEIGHT)};
         SDL_RenderFillRect(gRenderer, &r);
     }
 
@@ -350,14 +355,14 @@ void Editbox::render() {
         TextPosition cursor_pos = lines.get_cursor_pos();
         SDL_SetRenderDrawColor(gRenderer, 0xf0, 0xf0, 0xf0, 0xff);
         if (!insert_mode) {
-            SDL_RenderDrawLine(
+            SDL_RenderLine(
                 gRenderer,
                 x + BOX_TEXT_MARGIN + BOX_CHAR_WIDTH * cursor_pos.col,
                 y + BOX_LINE_HEIGHT * cursor_pos.row + BOX_TEXT_MARGIN,
                 x + BOX_TEXT_MARGIN + BOX_CHAR_WIDTH * cursor_pos.col,
                 y + BOX_LINE_HEIGHT * (cursor_pos.row + 1) + BOX_TEXT_MARGIN);
         } else {
-            SDL_RenderDrawLine(
+            SDL_RenderLine(
                 gRenderer,
                 x + BOX_TEXT_MARGIN + BOX_CHAR_WIDTH * cursor_pos.col,
                 y + BOX_LINE_HEIGHT * (cursor_pos.row + 1) + BOX_TEXT_MARGIN,

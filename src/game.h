@@ -1,8 +1,8 @@
 #pragma once
 #include "editbox.h"
 #include "language.h"
-#include <engine/game.h>
-#include <engine/ui.h>
+#include "engine/game.h"
+#include "engine/ui.h"
 #include "maze.h"
 #include <vector>
 #include "enemy.h"

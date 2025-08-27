@@ -1,5 +1,5 @@
 #include "ui.h"
-#include "engine/log.h"
+#include "log.h"
 #include "style.h"
 #include <utility>
 
@@ -8,7 +8,7 @@ TTF_Font *TextBox::font;
 void TextBox::init(TTF_Font *font_data) {
     TextBox::font = font_data;
     if (TextBox::font == nullptr) {
-        throw game_exception(std::string(TTF_GetError()));
+        throw game_exception(std::string(SDL_GetError()));
     }
 }
 
@@ -37,22 +37,25 @@ void TextBox::generate_texture() {
     }
 
     SDL_Surface *text_surface =
-        TTF_RenderUTF8_Blended_Wrapped(font, text.c_str(), color, w);
+        TTF_RenderText_Blended_Wrapped(font, text.c_str(), 
+                                       text.length(),
+                                       color, w);
     if (text_surface == nullptr) {
-        throw image_load_exception(std::string(TTF_GetError()));
+        throw image_load_exception(std::string(SDL_GetError()));
     }
     int width = text_surface->w;
     int height = text_surface->h;
     SDL_Texture *text_texture =
         SDL_CreateTextureFromSurface(gRenderer, text_surface);
-    SDL_FreeSurface(text_surface);
+    SDL_DestroySurface(text_surface);
 
     if (text_texture == nullptr) {
         throw image_load_exception(std::string(SDL_GetError()));
     }
     texture = Texture(text_texture, width, height);
 
-    TTF_SizeUTF8(font, text.c_str(), &width, &height);
+    TTF_GetStringSize(font, text.c_str(), text.length(), 
+                      &width, &height);
     if (alignment == Alignment::LEFT) {
         text_offset_x = 0;
     } else if (alignment == Alignment::CENTRE) {
@@ -84,11 +87,13 @@ void TextBox::set_align(Alignment align) {
         text_offset_x = 0;
     } else if (align == Alignment::CENTRE) {
         int width, height;
-        TTF_SizeUTF8(font, text.c_str(), &width, &height);
+        TTF_GetStringSize(font, text.c_str(), text.length(),
+                          &width, &height);
         text_offset_x = static_cast<int>((w - width / dpi_ratio) / 2);
     } else {
         int width, height;
-        TTF_SizeUTF8(font, text.c_str(), &width, &height);
+        TTF_GetStringSize(font, text.c_str(), text.length(),
+                          &width, &height);
         text_offset_x = static_cast<int>(w - width / dpi_ratio);
     }
 }
@@ -122,18 +127,23 @@ void TextBox::render(const int x_offset, const int y_offset,
     }
     // When rendering text, set logical size to the size of the window to allow
     // better quality text. Because of this, need to manually adjust for DPI.
-    SDL_RenderSetLogicalSize(gRenderer, dpi_ratio * window_state.screen_width,
-                             dpi_ratio * window_state.screen_height);
+    /*SDL_SetRenderLogicalPresentation(gRenderer, 
+            dpi_ratio * window_state.screen_width,
+            dpi_ratio * window_state.screen_height,
+            SDL_LOGICAL_PRESENTATION_DISABLED);*/
     texture.render_corner(
-        static_cast<int>(dpi_ratio * (x_offset + x + text_offset_x)),
-        static_cast<int>(dpi_ratio * (y_offset + y + text_offset_y)));
-    SDL_RenderSetLogicalSize(gRenderer, window_state.screen_width,
-                             window_state.screen_height);
+        static_cast<int>((x_offset + x + text_offset_x)),
+        static_cast<int>((y_offset + y + text_offset_y)));
+    /*SDL_SetRenderLogicalPresentation(gRenderer, 
+            window_state.screen_width,
+            window_state.screen_height,
+            SDL_LOGICAL_PRESENTATION_LETTERBOX);*/
 }
 
 Polygon::Polygon(std::initializer_list<SDL_FPoint> points) {
     verticies.reserve(points.size());
-    color = {UI_BORDER_COLOR};
+    SDL_Color c = {UI_BORDER_COLOR};
+    color = {c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f};
     for (auto p : points) {
         SDL_Vertex ver{p, {color.r, color.g, color.b, color.a}, {0.0f, 0.0f}};
         verticies.push_back(ver);
@@ -167,9 +177,9 @@ void Polygon::set_points(std::initializer_list<SDL_FPoint> points) {
 }
 
 void Polygon::set_border_color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-    color = {r, g, b, a};
+    color = {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
     for (auto& v: verticies) {
-        v.color = {r, g, b, a};
+        v.color = color;
     }
 }
 
@@ -189,15 +199,17 @@ Box::Box(int x, int y, int w, int h) : rect{x, y, w, h}, border_width{0}, filled
 
 void Box::render(int x_offset, int y_offset) const {
     SDL_SetRenderDrawColor(gRenderer, r, g, b, a);
-    SDL_Rect r = {rect.x + x_offset, rect.y + y_offset, rect.w, rect.h};
+    SDL_FRect r = {(float)(rect.x + x_offset), (float)(rect.y + y_offset),
+                   (float)rect.w, (float)rect.h};
     if (filled) {
         SDL_RenderFillRect(gRenderer, &r);
         return;
     }
     SDL_RenderFillRect(gRenderer, &r);
     SDL_SetRenderDrawColor(gRenderer, UI_BACKGROUND_COLOR);
-    r = {r.x + border_width, r.y + border_width,
-                  r.w - 2 * border_width, r.h - 2 * border_width};
+    r = {(float)(r.x + border_width), (float)(r.y + border_width),
+                  (float)(r.w - 2 * border_width),
+                  (float)(r.h - 2 * border_width)};
     SDL_RenderFillRect(gRenderer, &r);
 }
 
@@ -282,7 +294,8 @@ void Button::render(const int x_offset, const int y_offset,
                     const WindowState &window_state) const {
     bool hover = hover_enabled && is_pressed(window_state.mouseX - x_offset,
                                              window_state.mouseY - y_offset);
-    SDL_Rect r = {text.x + x_offset, text.y + y_offset, text.w, text.h};
+    SDL_FRect r = {(float)(text.x + x_offset),
+                   (float)(text.y + y_offset), (float)text.w, (float)text.h};
     if (border) {
         SDL_SetRenderDrawColor(gRenderer, UI_BORDER_COLOR);
         SDL_RenderFillRect(gRenderer, &r);
@@ -327,11 +340,12 @@ void Dropdown::render(int x_offset, int y_offset,
         for (auto &btn : choices) {
             btn.render(x_offset, y_offset, window_state);
         }
-        SDL_Rect r = {x_offset + base.text.x,
-                      y_offset + base.text.y + base.text.h, max_w + 8,
-                      static_cast<int>(choices.size()) * (max_h + 16)};
+        SDL_FRect r = {(float)(x_offset + base.text.x),
+                      (float)(y_offset + base.text.y + base.text.h),
+                      (float)(max_w + 8),
+                      (float)(choices.size()) * (max_h + 16)};
         SDL_SetRenderDrawColor(gRenderer, UI_BORDER_COLOR);
-        SDL_RenderDrawRect(gRenderer, &r);
+        SDL_RenderRect(gRenderer, &r);
         SDL_Vertex verticies[3] = {
             {{x_base, y_base + 10}, {UI_TEXT_COLOR}, {0.0f, 0.0f}},
             {{x_base + 10, y_base + 10}, {UI_TEXT_COLOR}, {0.0f, 0.0f}},
@@ -360,7 +374,8 @@ void Dropdown::set_choices(const std::vector<std::string> &choices,
     int tw, th;
     const std::string base_str = " -";
     if (default_value != "") {
-        TTF_SizeUTF8(gFont, base_str.c_str(), &tw, &th);
+        TTF_GetStringSize(gFont, base_str.c_str(), base_str.length(),
+                          &tw, &th);
         if (tw > max_w) {
             max_w = tw;
         }
@@ -370,7 +385,7 @@ void Dropdown::set_choices(const std::vector<std::string> &choices,
     }
     for (int i = 0; i < choices.size(); ++i) {
         const std::string str = " " + choices[i];
-        TTF_SizeUTF8(gFont, str.c_str(), &tw, &th);
+        TTF_GetStringSize(gFont, str.c_str(), str.length(), &tw, &th);
         if (tw > max_w) {
             max_w = tw;
         }

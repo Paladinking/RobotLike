@@ -1,7 +1,7 @@
 #ifndef GAME_00_H
 #define GAME_00_H
 #include "exceptions.h"
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <memory>
 #include <stack>
 #include <utility>
@@ -30,7 +30,7 @@ struct WindowState {
     int mouseX;
     int mouseY;
     Uint32 mouse_mask;
-    const Uint8 *keyboard_state;
+    const bool *keyboard_state;
 };
 
 /**

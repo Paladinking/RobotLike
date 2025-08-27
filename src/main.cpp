@@ -1,10 +1,10 @@
 #include "game.h"
 #include "engine/log.h"
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
-#include <engine/engine.h>
-#include <engine/game.h>
+#include "engine/engine.h"
+#include "engine/game.h"
+#include <SDL3/SDL.h>
+#include <SDL3_Image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <memory>
 
 class SDL_context {
@@ -12,19 +12,13 @@ public:
     SDL_context() {
         LOG_INFO("Initializing SDL");
         //SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
-        SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
-        if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        //SDL_SetHint(SDL_HINT_WINDOWS_DPI_SCALING, "1");
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
             LOG_CRITICAL("Failed initializing SDL: %s", SDL_GetError());
             exit(1);
         }
-        if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) == 0) {
-            LOG_CRITICAL("Failed initializing SDL_image: %s", IMG_GetError());
-            SDL_Quit();
-            exit(1);
-        }
-        if (TTF_Init() < 0) {
-            LOG_CRITICAL("Failed initializing SDL_ttf: %s", TTF_GetError());
-            IMG_Quit();
+        if (!TTF_Init()) {
+            LOG_CRITICAL("Failed initializing SDL_ttf: %s", SDL_GetError());
             SDL_Quit();
             exit(1);
         }
@@ -33,7 +27,6 @@ public:
         } catch (base_exception& e) {
             LOG_CRITICAL("Failed initializing engine: %s", e.msg.c_str());
             TTF_Quit();
-            IMG_Quit();
             SDL_Quit();
             exit(1);
         }
@@ -46,7 +39,6 @@ public:
             LOG_INFO("Shutting down SDL libraries");
             engine::shutdown();
             TTF_Quit();
-            IMG_Quit();
             SDL_Quit();
         }
     }
@@ -59,7 +51,7 @@ std::unique_ptr<SDL_context> context;
 int main(int argv, char* argc[]) {
     context = std::make_unique<SDL_context>();
 
-    SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
+    SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
 
     StateGame game {new GameState(), 1920, 1080, "Text box!!!"};
     try {

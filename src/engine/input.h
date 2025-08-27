@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include "exceptions.h"
 
 /**

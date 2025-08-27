@@ -1,8 +1,7 @@
 #include "engine.h"
 #include "exceptions.h"
 #include "ui.h"
-#include <SDL.h>
-#include "font.h"
+#include <SDL3/SDL.h>
 
 extern const int DEFAULT_FONT_LENGTH;
 extern const Uint8 DEFAULT_FONT[];
@@ -12,7 +11,6 @@ TTF_Font *gFont;
 Uint8* font_buffer = nullptr;
 
 void engine::init() {
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "best");
     /*unsigned long buffer_size = 16384;
     font_buffer = new Uint8[buffer_size];
     const int status =
@@ -22,11 +20,10 @@ void engine::init() {
         throw game_exception("Could not load default font");
     }
     SDL_RWops *ptr = SDL_RWFromConstMem(font_buffer, static_cast<int>(buffer_size));*/
-    SDL_RWops *ptr = SDL_RWFromConstMem(mono_font, static_cast<int>(mono_font_size));
-    gFont = TTF_OpenFontRW(ptr, 1, 20);
+    gFont = TTF_OpenFont("flexi-ibm-vga-true.regular.ttf", 20);
     if (gFont == nullptr) {
         delete[] font_buffer;
-        throw game_exception(std::string(TTF_GetError()));
+        throw game_exception(std::string(SDL_GetError()));
     }
     TextBox::init(gFont);
 }
