@@ -10,8 +10,32 @@
 #include <thread>
 #include <unordered_map>
 #include <utility>
+#include <atomic>
 #include <vector>
 #include "refcount.h"
+
+
+struct StrWithSize {
+    const char* str;
+    uint32_t size;
+};
+
+enum class Binoper {
+    DIV, MUL, MOD, // 0
+    SUB, ADD, // 1
+    BIT_LSHIFT, BIT_RSHIFT, // 2
+    CMP_LE, CMP_GE, CMP_G, CMP_L, // 3
+    CMP_EQ, CMP_NEQ, // 4
+    BIT_AND, // 5
+    BIT_XOR, // 6
+    BIT_OR, // 7
+    BOOL_AND, // 8
+    BOOL_OR, // 9
+};
+
+enum class Unoper {
+    BITNOT, BOOLNOT, NEGATIVE, POSITIVE, PAREN
+};
 
 class RuntimeError : std::exception {
 public:
@@ -389,6 +413,8 @@ public:
         BITOR,
         BITAND,
         BITXOR,
+        BIT_LSHIFT,
+        BIT_RSHIFT,
         AND,
         OR,
         GT,
@@ -408,7 +434,7 @@ class UniOp : public Expression {
     Expression *e;
 
 public:
-    enum Type { NEGATE, NOT, PAREN } type;
+    enum Type { POSITIVE, NEGATIVE, NOT, BITNOT, PAREN } type;
     UniOp(int32_t lineno, Type type, Expression *e)
         : Expression{lineno}, type{type}, e{e} {}
 

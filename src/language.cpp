@@ -318,7 +318,12 @@ Value UniOp::evaluate(Program &p) const {
     }
     p.status(lineno);
     Value inner = e->evaluate(p);
-    if (type == NEGATE) {
+    if (type == POSITIVE) {
+        if (!inner.numeric()) {
+            throw RuntimeError(lineno, "Unary plus of non-numeric type");
+        }
+        return inner;
+    } if (type == NEGATIVE) {
         if (!inner.numeric()) {
             throw RuntimeError(lineno, "Negation of non-numeric type");
         }

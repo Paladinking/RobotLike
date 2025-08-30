@@ -307,20 +307,20 @@ class Mingw(BackendBase):
         return True
     
     def compile_obj(self, obj: Obj) -> str:
-        return f"gcc.exe -MMD -MF - -c -o {obj.product} {obj.cmp_flags} {obj.source}"
+        return f"g++.exe -MMD -MF - -c -o {obj.product} {obj.cmp_flags} {obj.source}"
     
     def compile_obj_ninja(self) -> str:
         return "    deps = gcc\n    depfile = $out.d\n" + \
-               "    command = gcc.exe -MMD -MF $out.d -c $in -o $out $cl_flags"
+               "    command = g++.exe -MMD -MF $out.d -c $in -o $out $cl_flags"
 
     def link_exe_ninja(self) -> str:
-        return "    command = gcc.exe -o $out $in $link_flags"
+        return "    command = g++.exe -o $out $in $link_flags"
 
     def link_dll_ninja(self) -> str:
-        return "    command = gcc.exe -shared -o $out $in $link_flags"
+        return "    command = g++.exe -shared -o $out $in $link_flags"
 
     def find_headers(self, obj: Obj) -> List[str]:
-        cmd = f"gcc.exe -MM {obj.cmp_flags} {obj.source}"
+        cmd = f"g++.exe -MM {obj.cmp_flags} {obj.source}"
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if res.returncode != 0:
             print(res)
@@ -330,11 +330,11 @@ class Mingw(BackendBase):
 
     def link_exe(self, exe: Exe) -> str:
         row = " ".join([f"{obj.product}" for obj in exe.objs] + [f"{cmd.product}" for cmd in exe.cmds])
-        return f"gcc.exe -o {exe.product} {exe.link_flags} {row}"
+        return f"g++.exe -o {exe.product} {exe.link_flags} {row}"
 
     def link_dll(self, exe: Exe) -> str:
         row = " ".join([f"{obj.product}" for obj in exe.objs] + [f"{cmd.product}" for cmd in exe.cmds])
-        return f"gcc.exe -shared -o {exe.product} {exe.link_flags} {row}"
+        return f"g++.exe -shared -o {exe.product} {exe.link_flags} {row}"
 
     def include(self, directory: str) -> str:
         return f"-I{directory}"

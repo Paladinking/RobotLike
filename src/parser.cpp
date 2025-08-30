@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "parse.h"
 
 // Global scope:
 //      <statement>|<function_def>
@@ -141,7 +142,7 @@ Expression* Parser::parse_expression(Lines lines) {
     } else if (lines[line][ix] == '-') {
         ++ix;
         Expression* e = parse_expression(lines);
-        var = new UniOp(lineno, UniOp::NEGATE, e);
+        var = new UniOp(lineno, UniOp::NEGATIVE, e);
     } else if (lines[line][ix] == '!') {
         ++ix;
         Expression* e = parse_expression(lines);

@@ -1,0 +1,109 @@
+include: "language.h";
+
+atoms: kwIf, kwElse, kwElsif, kwTrue, kwFalse, kwReturn, 
+       kwWhile, kwFn, kwFor, kwIn, kwNone, kwAnd, kwOr,
+       integer, real, identifier, string, separator, blockend;
+
+type: integer = int64_t;
+type: real = double;
+type: identifier = StrWithSize;
+type: string = StrWithSize;
+type: separator = char;
+type: blockend = int64_t;
+
+type: BINOPERATOR = BinOp::Type;
+type: UNARYOPERATOR = UniOp::Type;
+
+PROGRAM = '' |
+          PROGRAM + FUNCTION |
+          PROGRAM + STATEMENT;
+
+FN_HEAD = kwFn + identifier + '(' + ?ARG_LIST + ')' + ':' + separator : OnFnHead;
+
+FUNCTION = FN_HEAD + STATEMENTS : OnFunction;
+
+?ARG_LIST = '' :$ NULL |
+            ARG_LIST :$ $0;
+
+ARG_LIST = identifier : OnArgList |
+           ARG_LIST + ',' + identifier : OnAddArgList;
+
+STATEMENTS = STATEMENT_LIST + blockend :$ $0;
+
+STATEMENT_LIST = STATEMENT : OnStatement |
+                 STATEMENT_LIST + STATEMENT : OnStatements;
+
+STATEMENT = WHILE_HEAD + STATEMENTS : OnWhile |
+            FOR_HEAD + STATEMENTS : OnFor |
+            IF :$ $0 |
+            EXPRESSION + '=' + EXPRESSION + separator : OnAssign |
+            EXPRESSION + separator : OnExprStatement |
+            kwReturn + EXPRESSION + separator : OnReturn;
+
+WHILE_HEAD = kwWhile + EXPRESSION + ':' + separator : OnWhileHead;
+FOR_HEAD = kwFor + EXPRESSION + kwIn + EXPRESSION + ':' + separator : OnForHead;
+IF_HEAD = kwIf + EXPRESSION + ':' + separator : OnIfHead;
+ELSIF_HEAD = kwElsif + EXPRESSION + ':' + separator : OnElsifHead;
+ELSE_HEAD = kwElse + ':' + separator : OnElseHead;
+
+IF = IF_HEAD + STATEMENTS + ?ELSE : OnIf;
+
+ELSIF = '' :$ NULL |
+        ELSIF + ELSIF_HEAD + STATEMENTS : OnElsif;
+
+?ELSE = ELSIF :$ $0 |
+        ELSIF + ELSE_HEAD + STATEMENTS : OnElse;
+
+
+EXPR = kwTrue : OnTrue |
+       kwFalse : OnFalse |
+       kwNone : OnNone |
+       identifier : OnIdentExpr |
+       integer : OnInt |
+       real : OnReal |
+       string : OnString |
+       MEMBERREF :$ $0 |
+       CALL :$ $0 |
+       LIST_INDEX :$ $0 |
+       '(' + EXPRESSION + ')' : OnParen;
+
+EXPRESSION = EXPR  :$ $0 |
+             BINOP :$ $0 |
+             UNOP  :$ $0;
+
+BINOPERATOR = '//' :$ BinOp::IDIV |'/' :$ BinOp::DIV |
+              '*' :$ BinOp::MUL | 
+              '%' :$ BinOp::MOD |
+              '-' :$ BinOp::SUB | '+' :$ BinOp::ADD |
+              '<<' :$ BinOp::BIT_LSHIFT| '>>' :$ BinOp::BIT_RSHIFT |
+              '<=' :$ BinOp::LTE | '>=' :$ BinOp::GTE |
+              '>' :$ BinOp::GT | '<' :$ BinOp::LT |
+              '==' :$ BinOp::EQ | '!=' :$ BinOp::NEQ |
+              '&'  :$ BinOp::BITAND |
+              '^'  :$ BinOp::BITXOR |
+              '|'  :$ BinOp::BITOR |
+              kwAnd :$ BinOp::AND |
+              kwOr :$ BinOp::OR;
+
+UNARYOPERATOR = '~' :$ UniOp::BITNOT |
+                '!' :$ UniOp::NOT |
+                '-' :$ UniOp::NEGATIVE |
+                '+' :$ UniOp::POSITIVE;
+
+BINOP = EXPRESSION + BINOPERATOR + EXPR : OnBinop1 |
+        EXPRESSION + BINOPERATOR + UNOP : OnBinop2;
+
+UNOP = UNARYOPERATOR + EXPR : OnUnop1 |
+       UNARYOPERATOR + UNOP : OnUnop2;
+
+CALL = EXPR + '(' + ?PARAM_LIST + ')' : OnCall;
+
+MEMBERREF = EXPR + '.' + identifier : OnMemberRef;
+
+?PARAM_LIST = '' :$ NULL |
+              PARAM_LIST :$ $0;
+
+PARAM_LIST = EXPRESSION : OnParamList |
+             PARAM_LIST + ',' + EXPRESSION : OnAddParamList;
+
+LIST_INDEX = EXPR + '[' + EXPRESSION + ']' : OnArrayIndex;

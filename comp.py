@@ -1,31 +1,25 @@
 from comp_backend import *
 import pathlib
 
-CLFLAGS="/favor:AMD64 /FS /Zi /DEBUG /arch:AVX2 /MD /EHsc"
+CLFLAGS="/favor:AMD64 /FS /Zi /DEBUG /arch:AVX2 /MD /EHsc /std:c++17"
 LINKFLAGS="/DEBUG"
-DLLFLAGS=""
 
 BUILD_DIR = "build"
 BIN_DIR = "bin"
 
-CLFLAGS_DBG = "-g -Og -O0 -march=native"
+CLFLAGS_DBG = "-g -Og -O0 -march=native -std=c++17"
 LINKFLAGS_DBG = "-g -Og -O0 -march=native"
 
 BUILD_DIR_DBG = "build-gcc"
 BIN_DIR_DBG = "bin-gcc"
 
-BUILD_DIR_ZIG = "build-zig"
-BIN_DIR_ZIG = "bin-zig"
-
 WEB_BUILD_DIR = "build-web"
 WEB_BIN_DIR = "bin-web"
-
 
 WORKDIR = pathlib.Path(__file__).parent.resolve()
 
 add_backend("Msvc", "Msvc", BUILD_DIR, BIN_DIR, WORKDIR, CLFLAGS, LINKFLAGS)
 add_backend("Mingw", "Mingw", BUILD_DIR_DBG, BIN_DIR_DBG, WORKDIR, CLFLAGS_DBG, LINKFLAGS_DBG)
-add_backend("Zigcc", "Zigcc", BUILD_DIR_ZIG, BIN_DIR_ZIG, WORKDIR, CLFLAGS_DBG, LINKFLAGS_DBG)
 #add_backend("Emcc", "Emcc", WEB_BUILD_DIR, WEB_BIN_DIR, WORKDIR, "", "")
 
 set_backend("Msvc")
@@ -49,7 +43,7 @@ def main():
     src = ["src/main.cpp", "src/game.cpp", "src/editbox.cpp",
            "src/editlines.cpp", "src/maze.cpp", "src/language.cpp",
            "src/parser.cpp", "src/slime.cpp", "src/equipment.cpp",
-           "src/player.cpp", "src/utils.cpp"]
+           "src/parse.cpp", "src/player.cpp", "src/utils.cpp"]
 
     with Context(namespace="engine"):
         engine = [Object(p.with_suffix(".obj").name, p,
